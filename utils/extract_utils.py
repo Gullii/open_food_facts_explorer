@@ -1,7 +1,6 @@
 import logging
 
 import pandas as pd
-import datetime as dt
 
 from typing import Dict
 
@@ -51,12 +50,12 @@ def gather_data_for_countries(
     country_dict: Dict[str, str] = ISO3166_WORLD,
 ):
     """
-    Gets all products for each existing country code from an OpenFoodFactsAPI and writes the result to a csv
+    Gets all products for each existing country code from an OpenFoodFactsAPI and writes the result to a Dataframe
     :param off: initialized OpenFoodFactsApi Object
     :param fields: Optional list to limit fields to be queried from Open Food Facts
     :param country_dict: Optional way to specify a dict to be used as lookup for country codes. If not specified use
     list of all countries
-    :return:
+    :return: Dataframe with specified fields
     """
     full_list = pd.DataFrame()
     failed = []
@@ -74,7 +73,8 @@ def gather_data_for_countries(
 
     full_list.reset_index(inplace=True, drop=True)
     full_list = full_list.loc[full_list.kcal_per100 != 0]
-    full_list.to_csv(f"off_full_list-{dt.datetime.now().date()}.csv")
-    logging.warning(
-        f"Failed to fetch following countries {','.join(f for f in failed)}"
-    )
+    if len(failed) > 0:
+        logging.warning(
+            f"Failed to fetch following countries {','.join(f for f in failed)}"
+        )
+    return full_list
