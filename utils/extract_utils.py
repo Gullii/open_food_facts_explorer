@@ -60,5 +60,5 @@ def gather_data_for_all_countries(off: OpenFoodFactsAPI, fields: list = None):
     full_list.reset_index(inplace=True, drop=True)
     full_list = full_list.loc[full_list.kcal_per100 != 0]
     full_list.to_csv(
-        f"off_full_list-{dt.datetime.now().date()}-{dt.datetime.now().time()}.csv"
+        f"off_full_list-{dt.datetime.now().date()}.csv"
     )
