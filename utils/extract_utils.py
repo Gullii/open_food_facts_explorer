@@ -1,7 +1,12 @@
+import logging
+
 import pandas as pd
 import datetime as dt
+
+from typing import Dict
+
 from off_api import OpenFoodFactsAPI
-from utils.country_codes import ISO3166
+from utils.country_codes import ISO3166_WORLD
 
 
 def get_all_products_from_country_code(
@@ -40,25 +45,36 @@ def get_kcal_from_nutriments(prod: pd.DataFrame) -> pd.DataFrame:
     return prod
 
 
-def gather_data_for_all_countries(off: OpenFoodFactsAPI, fields: list = None):
+def gather_data_for_countries(
+    off: OpenFoodFactsAPI,
+    fields: list = None,
+    country_dict: Dict[str, str] = ISO3166_WORLD,
+):
     """
     Gets all products for each existing country code from an OpenFoodFactsAPI and writes the result to a csv
     :param off: initialized OpenFoodFactsApi Object
     :param fields: Optional list to limit fields to be queried from Open Food Facts
+    :param country_dict: Optional way to specify a dict to be used as lookup for country codes. If not specified use
+    list of all countries
     :return:
     """
     full_list = pd.DataFrame()
-
-    for country in ISO3166:
-        print(f"getting products for country {ISO3166.get(country)}")
+    failed = []
+    for country in country_dict:
+        print(f"getting products for country {ISO3166_WORLD.get(country)}")
         try:
             prods = get_all_products_from_country_code(off, country, fields)
             full_list = pd.concat([full_list, prods])
+        except TimeoutError as toe:
+            logging.warning(f"Failed for {country} with Timeout")
+            failed.append(country)
         except Exception as e:
-            raise e
+            logging.warning(f"Failed for {country} with unknown error {e}")
+            failed.append(country)
 
     full_list.reset_index(inplace=True, drop=True)
     full_list = full_list.loc[full_list.kcal_per100 != 0]
-    full_list.to_csv(
-        f"off_full_list-{dt.datetime.now().date()}.csv"
+    full_list.to_csv(f"off_full_list-{dt.datetime.now().date()}.csv")
+    logging.warning(
+        f"Failed to fetch following countries {','.join(f for f in failed)}"
     )

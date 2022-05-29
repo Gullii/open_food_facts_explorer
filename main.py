@@ -1,7 +1,7 @@
 import pandas as pd
 
 from off_api import OpenFoodFactsAPI
-from utils.extract_utils import gather_data_for_all_countries
+from utils.extract_utils import gather_data_for_countries
 from os.path import exists
 
 if __name__ == "__main__":
@@ -11,4 +11,4 @@ if __name__ == "__main__":
     if exists("full_list.csv"):
         ll = pd.read_csv("full_list.csv")
     else:
-        gather_data_for_all_countries(off, fields)
+        gather_data_for_countries(off, fields)
